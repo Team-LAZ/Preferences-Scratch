@@ -1,5 +1,6 @@
 package com.laz.preferences;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
@@ -9,6 +10,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -19,11 +21,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 //https://github.com/libgdx/libgdx/wiki/Preferences
 
 //integer is loaded from a file called preferencesScratch
-public class PreferencesScreen implements Screen {
+public class PreferencesScreen extends Stage implements Screen {
 
-    final PreferencesScratch preferencesScratch;
+    Game game;
+    SpriteBatch batch;
     OrthographicCamera camera;
-    Stage stage;
     BitmapFont font;
     Skin skin;
     Pixmap pixmap;
@@ -33,8 +35,8 @@ public class PreferencesScreen implements Screen {
     Preferences pref;
     int nAttack;
 
-    public PreferencesScreen(final PreferencesScratch preferencesScratch) {
-        this.preferencesScratch = preferencesScratch;
+    public PreferencesScreen(Game game) {
+        this.game = game;
 
         //gets preferences file
         pref = Gdx.app.getPreferences("preferencesScratch");
@@ -42,18 +44,17 @@ public class PreferencesScreen implements Screen {
         nAttack = pref.getInteger("attack");
         System.out.println("ATTACK @ LOAD: " + nAttack);
 
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, Data.WIDTH, Data.HEIGHT);
+        batch = new SpriteBatch();
 
-        stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, 10F, 10F);
 
         font = new BitmapFont();
 
         skin = new Skin();
         skin.add("default", font);
 
-        pixmap = new Pixmap(Data.WIDTH / 4, Data.HEIGHT / 10, Pixmap.Format.RGB888);
+        pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 10, Pixmap.Format.RGB888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
         skin.add("background", new Texture(pixmap));
@@ -65,14 +66,15 @@ public class PreferencesScreen implements Screen {
         skin.add("default", textButtonStyle);
 
         btnAttack = new TextButton("Level Up Attack", skin);
-        btnAttack.setPosition(Data.WIDTH / 2 - Data.WIDTH / 8, Data.HEIGHT / 2 + 75);
-        stage.addActor(btnAttack);
+        btnAttack.setPosition(Gdx.graphics.getWidth() / 2 - Gdx.graphics.getWidth() / 8, Gdx.graphics.getHeight() / 2 + 75);
 
         btnAttack.addListener(new ClickListener() {
             public void clicked(InputEvent event, float x, float y) {
                 levelAttack();
             }
         });
+
+        this.addActor(btnAttack);
     }
 
     public void levelAttack() {
@@ -86,22 +88,20 @@ public class PreferencesScreen implements Screen {
 
     @Override
     public void show() {
-
+        Gdx.input.setInputProcessor(this);
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 0);
+        Gdx.gl.glClearColor(0.294f, 0.294f, 0.294f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         camera.update();
-        preferencesScratch.batch.setProjectionMatrix(camera.combined);
 
-        preferencesScratch.batch.begin();
-        preferencesScratch.batch.end();
+        batch.begin();
+        batch.end();
 
-        stage.act();
-        stage.draw();
+        this.act(Gdx.graphics.getDeltaTime());
+        this.draw();
     }
 
     @Override
